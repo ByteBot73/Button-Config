@@ -91,39 +91,44 @@ namespace Button_Config
         }
 
         private async Task CheckForUpdates(bool silent)
+{
+    // 1. Check if the app is actually installed via Velopack
+    // If you are running from VS Code, this will be false.
+    if (!VelopackApp.Build().IsRuntimeInstalled) 
+    {
+        if (!silent) MessageBox.Show("Update check skipped: App is running in portable/debug mode.");
+        return;
+    }
+
+    try
+    {
+        var mgr = new UpdateManager(new GithubSource("https://github.com/ByteBot73/Button-Config", null, false));
+        var newVersion = await mgr.CheckForUpdatesAsync();
+        
+        if (newVersion == null)
         {
-            try
-            {
-                // REPLACE THIS URL WITH YOUR GITHUB REPO URL
-                var mgr = new UpdateManager(new GithubSource("https://github.com/ByteBot73/Button-Config", null, false));
-                
-                var newVersion = await mgr.CheckForUpdatesAsync();
-                if (newVersion == null)
-                {
-                    if (!silent) MessageBox.Show("You are on the latest version!");
-                    return;
-                }
-
-                // THE POPUP YOU ASKED FOR
-                DialogResult result = MessageBox.Show(
-                    "A new update is available! Would you like to download and install it now?", 
-                    "Update Found", 
-                    MessageBoxButtons.YesNo, 
-                    MessageBoxIcon.Information
-                );
-
-                if (result == DialogResult.Yes)
-                {
-                    if (!silent) btnUpdate.Text = "Downloading...";
-                    await mgr.DownloadUpdatesAsync(newVersion);
-                    mgr.ApplyUpdatesAndRestart(newVersion);
-                }
-            }
-            catch (Exception ex)
-            {
-                if (!silent) MessageBox.Show("Update check failed: " + ex.Message);
-            }
+            if (!silent) MessageBox.Show("You are on the latest version!");
+            return;
         }
+
+        DialogResult result = MessageBox.Show(
+            "A new update is available! Would you like to download and install it now?", 
+            "Update Found", 
+            MessageBoxButtons.YesNo, 
+            MessageBoxIcon.Information
+        );
+
+        if (result == DialogResult.Yes)
+        {
+            await mgr.DownloadUpdatesAsync(newVersion);
+            mgr.ApplyUpdatesAndRestart(newVersion);
+        }
+    }
+    catch (Exception ex)
+    {
+        if (!silent) MessageBox.Show("Update check failed: " + ex.Message);
+    }
+}
 
         private void SetupTray()
         {
