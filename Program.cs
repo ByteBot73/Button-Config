@@ -1,15 +1,15 @@
+using Velopack;
+
 namespace Button_Config;
 
 static class Program
 {
-    /// <summary>
-    ///  The main entry point for the application.
-    /// </summary>
     [STAThread]
     static void Main()
     {
-        // To customize application configuration such as set high DPI settings or default font,
-        // see https://aka.ms/applicationconfiguration.
+        // This line handles the update process before the app even fully starts
+        VelopackApp.Build().Run(); 
+
         ApplicationConfiguration.Initialize();
         Application.Run(new Form1());
     }    
